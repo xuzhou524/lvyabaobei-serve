@@ -1,0 +1,258 @@
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+class SendCodeRequest(BaseModel):
+    email: EmailStr
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(..., min_length=6, max_length=6)
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        if not v.isdigit():
+            raise ValueError("验证码必须为 6 位数字")
+        return v
+
+
+class SendCodeData(BaseModel):
+    email: str
+    expires_in_seconds: int
+    debug_code: str | None = None
+
+
+class TokenData(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserInfo(BaseModel):
+    email: str
+    has_parent_pin: bool = False
+    family_id: int | None = None
+    invite_code: str | None = None
+
+
+class SetParentPinRequest(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=4)
+
+    @field_validator("pin")
+    @classmethod
+    def validate_pin(cls, v: str) -> str:
+        if not v.isdigit():
+            raise ValueError("家长密码须为 4 位数字")
+        return v
+
+
+class VerifyParentPinRequest(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=4)
+
+
+class ChildCreateRequest(BaseModel):
+    nickname: str = Field(..., min_length=1, max_length=32)
+    gender: str = Field(default="unknown", pattern="^(boy|girl|unknown)$")
+    avatar_emoji: str = Field(default="child", max_length=16)
+
+
+class ChildUpdateRequest(BaseModel):
+    child_id: int
+    nickname: str | None = Field(default=None, max_length=32)
+    gender: str | None = Field(default=None, pattern="^(boy|girl|unknown)$")
+    avatar_emoji: str | None = Field(default=None, max_length=8)
+
+
+class ChildIdRequest(BaseModel):
+    child_id: int
+
+
+class ChildSummary(BaseModel):
+    id: int
+    nickname: str
+    gender: str
+    avatar_emoji: str
+    points: int
+    total_growth_value: int
+    current_stage: int
+    plant_name: str
+    plant_planted: bool
+    consecutive_checkin_days: int
+    total_checkin_days: int
+    badge_count: int
+
+    model_config = {"from_attributes": True}
+
+
+class PlantStagePreview(BaseModel):
+    stage: int
+    emoji: str
+    name: str
+    threshold: int
+
+
+class PlantInfo(BaseModel):
+    plant_name: str
+    plant_type: str
+    plant_planted: bool
+    stage: int
+    stage_emoji: str
+    stage_name: str
+    total_growth_value: int
+    progress_current: int
+    progress_total: int
+    progress_hint: str
+    stages: list[PlantStagePreview]
+
+
+class TaskItem(BaseModel):
+    id: int
+    title: str
+    category: str
+    point_reward: int
+    growth_reward: int
+    frequency: str
+    is_system_task: bool
+    sort_order: int
+    status: str
+    completion_id: int | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class HomeDashboard(BaseModel):
+    child: ChildSummary
+    plant: PlantInfo
+    today_tasks: list[TaskItem]
+    consecutive_checkin_days: int
+    total_checkin_days: int
+    badge_count: int
+    today_points_delta: int
+    onboarding_just_completed: bool = False
+
+
+class TaskCreateRequest(BaseModel):
+    child_id: int
+    title: str = Field(..., min_length=1, max_length=64)
+    category: str = Field(..., pattern="^(study|chore|habit|sport)$")
+    point_reward: int = Field(default=5, ge=1, le=100)
+    growth_reward: int = Field(default=5, ge=1, le=50)
+    frequency: str = Field(default="daily", pattern="^(daily|once)$")
+
+
+class TaskUpdateRequest(BaseModel):
+    task_id: int
+    title: str | None = Field(default=None, max_length=64)
+    category: str | None = Field(default=None, pattern="^(study|chore|habit|sport)$")
+    point_reward: int | None = Field(default=None, ge=1, le=100)
+    growth_reward: int | None = Field(default=None, ge=1, le=50)
+    frequency: str | None = Field(default=None, pattern="^(daily|once)$")
+
+
+class TaskReorderRequest(BaseModel):
+    child_id: int
+    task_ids: list[int]
+
+
+class TaskIdRequest(BaseModel):
+    task_id: int
+
+
+class RewardItem(BaseModel):
+    id: int
+    title: str
+    cost_points: int
+    emoji: str
+    is_active: bool
+    pending_redemption_id: int | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class RewardCreateRequest(BaseModel):
+    child_id: int
+    title: str = Field(..., min_length=1, max_length=64)
+    cost_points: int = Field(..., ge=1, le=9999)
+    emoji: str = Field(default="gift", max_length=16)
+
+
+class RewardUpdateRequest(BaseModel):
+    reward_id: int
+    title: str | None = Field(default=None, max_length=64)
+    cost_points: int | None = Field(default=None, ge=1, le=9999)
+    emoji: str | None = Field(default=None, max_length=8)
+    is_active: bool | None = None
+
+
+class RewardIdRequest(BaseModel):
+    reward_id: int
+
+
+class RedemptionIdRequest(BaseModel):
+    redemption_id: int
+
+
+class LedgerItem(BaseModel):
+    id: int
+    amount: int
+    source_type: str
+    description: str
+    created_at: int
+
+
+class GrowthReportSummary(BaseModel):
+    week_label: str
+    tasks_completed: int
+    tasks_total: int
+    points_earned: int
+    growth_earned: int
+    puzzle_minutes_estimate: int
+
+
+class GameCompleteRequest(BaseModel):
+    child_id: int
+    game_key: str = Field(default="schulte", max_length=32)
+
+
+class GameCompleteResult(BaseModel):
+    points_added: int
+    growth_added: int
+    puzzle_points_today: int
+    puzzle_daily_cap: int = 15
+
+
+class PlantRenameRequest(BaseModel):
+    child_id: int
+    plant_name: str = Field(..., min_length=1, max_length=32)
+
+
+class FamilyInfo(BaseModel):
+    id: int
+    name: str
+    invite_code: str
+
+
+class JoinFamilyRequest(BaseModel):
+    invite_code: str = Field(..., min_length=4, max_length=8)
+
+    @field_validator("invite_code")
+    @classmethod
+    def normalize_invite(cls, v: str) -> str:
+        normalized = "".join(v.split()).upper()
+        if not normalized:
+            raise ValueError("邀请码不能为空")
+        return normalized
+
+
+class FamilyMemberItem(BaseModel):
+    email: str
+    role: str
+    is_self: bool = False
+
+
+class PendingItem(BaseModel):
+    kind: str
+    id: int
+    title: str
+    child_nickname: str
+    submitted_at: int
