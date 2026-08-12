@@ -18,9 +18,10 @@ def _validation_message(exc: RequestValidationError) -> str:
 
 
 async def business_exception_handler(_: Request, exc: BusinessException) -> JSONResponse:
+    data = {"error_code": exc.error_code} if exc.error_code else None
     return JSONResponse(
         status_code=200,
-        content=fail(exc.code, exc.message).model_dump(),
+        content=fail(exc.code, exc.message, data=data).model_dump(),
     )
 
 

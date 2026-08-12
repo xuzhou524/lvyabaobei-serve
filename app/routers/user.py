@@ -5,9 +5,10 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.domain_schemas import SetParentPinRequest, UserInfo, VerifyParentPinRequest
 from app.exceptions import BusinessException
-from app.family_utils import ensure_user_family, hash_parent_pin, verify_parent_pin
+from app.family_utils import hash_parent_pin, verify_parent_pin
 from app.models import User
 from app.response import ApiResponse, success
+from app.user_info import build_user_info
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -17,15 +18,7 @@ def get_user_info(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    family = ensure_user_family(db, current_user)
-    return success(
-        UserInfo(
-            email=current_user.email,
-            has_parent_pin=bool(current_user.parent_pin_hash),
-            family_id=family.id,
-            invite_code=family.invite_code,
-        )
-    )
+    return success(build_user_info(db, current_user))
 
 
 @router.put("/parent-pin", response_model=ApiResponse[dict])

@@ -5,7 +5,9 @@ from app.child_access import get_user_family
 from app.database import get_db
 from app.deps import get_current_user
 from app.domain_schemas import FamilyInfo, FamilyMemberItem, JoinFamilyRequest, PendingItem
+from app.exceptions import BusinessException
 from app.family_utils import join_family_by_invite, mask_email
+from app.subscription_service import get_family_features
 from app.models import Child, FamilyMember, Reward, RewardRedemption, Task, TaskCompletion, User
 from app.response import ApiResponse, success
 
@@ -56,6 +58,14 @@ def join_family(
     if current.invite_code == body.invite_code:
         info = FamilyInfo(id=current.id, name=current.name, invite_code=current.invite_code)
         return success(info, message="您已在该家庭中")
+
+    features = get_family_features(db, current)
+    if not features.get("multi_parent"):
+        raise BusinessException(
+            403,
+            "多家长协作为 Pro 专属功能，升级后可通过邀请码加入家庭",
+            error_code="PRO_REQUIRED",
+        )
     family = join_family_by_invite(db, current_user, body.invite_code)
     info = FamilyInfo(id=family.id, name=family.name, invite_code=family.invite_code)
     return success(info, message="已成功加入家庭")

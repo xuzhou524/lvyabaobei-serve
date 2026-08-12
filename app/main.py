@@ -9,9 +9,11 @@ from app.handlers import (
     http_exception_handler,
     validation_exception_handler,
 )
+from app.migrations import run_migrations
 from app.response import ApiResponse, success
-from app.routers import auth, children, family, growth, rewards, tasks, user
+from app.routers import auth, children, family, growth, rewards, subscription, tasks, user
 
+run_migrations()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="绿芽宝贝 API", version="1.0.0")
@@ -27,6 +29,7 @@ app.include_router(tasks.router)
 app.include_router(growth.router)
 app.include_router(rewards.router)
 app.include_router(family.router)
+app.include_router(subscription.router)
 
 
 @app.get("/health", response_model=ApiResponse[dict])

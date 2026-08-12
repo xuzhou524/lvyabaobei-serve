@@ -10,9 +10,13 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     parent_pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    subscription_tier: Mapped[str] = mapped_column(String(16), default="free")
+    pro_expires_at: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    legacy_pro_trial_granted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     family_memberships: Mapped[list["FamilyMember"]] = relationship(back_populates="user")
+    subscription: Mapped["Subscription | None"] = relationship(back_populates="user", uselist=False)
 
 
 class EmailVerificationCode(Base):
@@ -173,3 +177,20 @@ class OperationLog(Base):
     action: Mapped[str] = mapped_column(String(64), nullable=False)
     detail: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, nullable=False)
+    tier: Mapped[str] = mapped_column(String(16), default="free")
+    product_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    original_transaction_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    expires_at: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    source: Mapped[str] = mapped_column(String(16), default="apple")
+    created_at: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    updated_at: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    user: Mapped["User"] = relationship(back_populates="subscription")

@@ -10,12 +10,14 @@ from app.domain_schemas import (
     ChildUpdateRequest,
     HomeDashboard,
 )
+from app.exceptions import BusinessException
 from app.models import Child, OperationLog, User
 from app.response import ApiResponse, success
 from app.serializers import build_plant_info, list_visible_tasks
 from app.services.rewards_engine import check_onboarding_complete
 from app.family_utils import seed_onboarding_tasks
 from app.services.child_lifecycle import delete_child_and_all_data
+from app.subscription_service import count_family_children, get_family_features, get_family_tier
 from app.time_utils import beijing_now_ms
 
 router = APIRouter(prefix="/children", tags=["children"])
@@ -41,6 +43,15 @@ def create_child(
     db: Session = Depends(get_db),
 ):
     family = get_user_family(db, current_user)
+    features = get_family_features(db, family)
+    existing = count_family_children(db, family)
+    if existing >= int(features["max_children"]):
+        tier_msg = "升级 Pro 后可添加更多" if get_family_tier(db, family) != "pro" else "已达上限"
+        raise BusinessException(
+            403,
+            f"当前套餐最多支持 {features['max_children']} 个宝贝，{tier_msg}",
+            error_code="CHILD_LIMIT_REACHED",
+        )
     now = beijing_now_ms()
     child = Child(
         family_id=family.id,

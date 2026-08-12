@@ -33,6 +33,34 @@ class UserInfo(BaseModel):
     has_parent_pin: bool = False
     family_id: int | None = None
     invite_code: str | None = None
+    subscription_tier: str = "free"
+    pro_expires_at: int | None = None
+    is_family_owner: bool = False
+    pro_features: "ProFeatures"
+
+
+class ProFeatures(BaseModel):
+    max_children: int
+    max_parents: int
+    puzzle_daily_cap: int
+    ledger_days: int | None = None
+    growth_report_full: bool
+    plant_reset: bool
+    multi_parent: bool
+
+
+class SubscriptionInfo(BaseModel):
+    subscription_tier: str
+    pro_expires_at: int | None = None
+    is_family_owner: bool
+    product_id: str | None = None
+    pro_features: ProFeatures
+
+
+class IapVerifyRequest(BaseModel):
+    product_id: str = Field(..., min_length=3, max_length=64)
+    transaction_id: str = Field(..., min_length=1, max_length=128)
+    jws_representation: str | None = Field(default=None, max_length=8192)
 
 
 class SetParentPinRequest(BaseModel):
@@ -200,13 +228,27 @@ class LedgerItem(BaseModel):
     created_at: int
 
 
+class LedgerListData(BaseModel):
+    items: list[LedgerItem]
+    days_limit: int | None = None
+    is_limited: bool = False
+
+
+class GrowthReportDailyItem(BaseModel):
+    day_label: str
+    tasks_completed: int
+
+
 class GrowthReportSummary(BaseModel):
     week_label: str
     tasks_completed: int
     tasks_total: int
-    points_earned: int
+    points_earned: int | None = None
     growth_earned: int
-    puzzle_minutes_estimate: int
+    puzzle_minutes_estimate: int | None = None
+    is_full: bool = False
+    daily_breakdown: list[GrowthReportDailyItem] | None = None
+    upgrade_hint: str | None = None
 
 
 class GameCompleteRequest(BaseModel):
