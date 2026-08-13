@@ -7,6 +7,7 @@ from app.deps import get_current_user
 from app.domain_schemas import FamilyInfo, FamilyMemberItem, JoinFamilyRequest, PendingItem
 from app.exceptions import BusinessException
 from app.family_utils import join_family_by_invite, mask_email
+from app.phone_utils import mask_phone
 from app.subscription_service import get_family_features
 from app.models import Child, FamilyMember, Reward, RewardRedemption, Task, TaskCompletion, User
 from app.response import ApiResponse, success
@@ -39,6 +40,7 @@ def list_family_members(
     return success(
         [
             FamilyMemberItem(
+                phone=mask_phone(user.phone),
                 email=mask_email(user.email),
                 role=member.role,
                 is_self=user.id == current_user.id,

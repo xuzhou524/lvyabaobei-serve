@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.domain_schemas import ProFeatures, UserInfo
 from app.family_utils import ensure_user_family
+from app.phone_utils import mask_phone
 from app.models import User
 from app.subscription_service import (
     get_family_features,
@@ -27,6 +28,7 @@ def build_user_info(db: Session, user: User) -> UserInfo:
     features = get_family_features(db, family)
     owner = db.query(User).filter(User.id == family.owner_user_id).one()
     return UserInfo(
+        phone=mask_phone(user.phone),
         email=user.email,
         has_parent_pin=bool(user.parent_pin_hash),
         family_id=family.id,

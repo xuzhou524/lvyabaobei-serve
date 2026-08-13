@@ -55,7 +55,7 @@ def join_family_by_invite(db: Session, user: User, invite_code: str) -> Family:
     if child_count > 0:
         raise BusinessException(
             409,
-            "当前账号所在家庭已有宝贝，无法加入其他家庭。请用新邮箱注册后再输入邀请码。",
+            "当前账号所在家庭已有宝贝，无法加入其他家庭。请注册新账号后再输入邀请码。",
         )
 
     old_family_id = current_family.id

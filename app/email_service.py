@@ -12,9 +12,17 @@ def generate_verification_code() -> str:
     return f"{random.randint(0, 999_999):06d}"
 
 
-def send_verification_email(to_email: str, code: str) -> None:
-    subject = "绿芽宝贝登录验证码"
-    body = f"您的登录验证码为：{code}，{settings.verification_code_expire_minutes} 分钟内有效。如非本人操作请忽略此邮件。"
+def send_verification_email(to_email: str, code: str, *, purpose: str = "login") -> None:
+    if purpose == "register":
+        subject = "绿芽宝贝注册验证码"
+        action = "注册"
+    else:
+        subject = "绿芽宝贝登录验证码"
+        action = "登录"
+    body = (
+        f"您的{action}验证码为：{code}，{settings.verification_code_expire_minutes} 分钟内有效。"
+        "如非本人操作请忽略此邮件。"
+    )
 
     if not settings.smtp_host:
         logger.info("[dev] 验证码邮件 -> %s : %s", to_email, code)
@@ -26,10 +34,16 @@ def send_verification_email(to_email: str, code: str) -> None:
     message["To"] = to_email
     message.set_content(body)
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as smtp:
-        smtp.starttls()
-        if settings.smtp_user:
-            smtp.login(settings.smtp_user, settings.smtp_password)
-        smtp.send_message(message)
+    if settings.smtp_port == 465:
+        with smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port) as smtp:
+            if settings.smtp_user:
+                smtp.login(settings.smtp_user, settings.smtp_password)
+            smtp.send_message(message)
+    else:
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as smtp:
+            smtp.starttls()
+            if settings.smtp_user:
+                smtp.login(settings.smtp_user, settings.smtp_password)
+            smtp.send_message(message)
 
     logger.info("验证码邮件已发送至 %s", to_email)

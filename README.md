@@ -15,7 +15,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8010
 ```
 
 > 数据库文件固定为 **`lvyabao-serve/lvyabao.db`**（与从哪个目录启动 uvicorn 无关）。  
-> 若曾用旧版数据库，请删除该文件后重启以重建表结构。
+> 若曾用旧版数据库，请删除该文件后重启以重建表结构。  
+> **auth v2** 首次启动迁移会自动清空全部历史账号数据。
 
 ## 鉴权
 
@@ -30,9 +31,10 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8010
 | 模块 | 方法 | 路径 | 主要参数 | 说明 |
 |------|------|------|----------|------|
 | 系统 | GET | `/health` | — | 健康检查 |
-| 认证 | POST | `/auth/send-code` | body: email | 发送邮箱验证码 |
-| 认证 | POST | `/auth/login` | body: email, code | 登录，自动创建家庭 |
-| 用户 | GET | `/user/info` | — | 邮箱、家长密码、邀请码 |
+| 认证 | POST | `/auth/send-code` | body: email, purpose | 发送邮箱验证码 |
+| 认证 | POST | `/auth/register` | body: phone, email, code, password | 注册并创建家庭 |
+| 认证 | POST | `/auth/login` | body: login_type + 凭据 | 手机号+密码 或 邮箱+验证码 |
+| 用户 | GET | `/user/info` | — | 手机号、邮箱、家长密码、邀请码 |
 | 用户 | PUT | `/user/parent-pin` | body: pin | 设置 4 位家长密码 |
 | 用户 | POST | `/user/verify-parent-pin` | body: pin | 验证家长密码 |
 | 家庭 | GET | `/family` | — | 家庭信息与邀请码 |

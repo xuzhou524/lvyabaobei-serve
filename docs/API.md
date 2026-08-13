@@ -80,13 +80,15 @@ Content-Type: application/json
 
 ### POST `/auth/send-code`
 
-发送邮箱验证码。
+发送邮箱验证码（注册或邮箱验证码登录）。
 
 **请求体**
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `email` | string | 是 | 登录邮箱 |
+| `email` | string | 是 | 邮箱 |
+| `purpose` | string | 否 | `register`（注册，邮箱/手机号须未占用）或 `login`（登录，邮箱须已注册），默认 `login` |
+| `phone` | string | 注册时必填 | 11 位手机号，注册时用于校验手机号是否已占用 |
 
 **响应 `data`（SendCodeData）**
 
@@ -100,16 +102,49 @@ Content-Type: application/json
 
 ---
 
-### POST `/auth/login`
+### POST `/auth/register`
 
-邮箱 + 验证码登录。新用户自动注册，并 **自动创建家庭**。
+注册新账号（手机号 + 邮箱 + 邮箱验证码 + 密码），并 **自动创建家庭**。
 
 **请求体**
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `email` | string | 是 | 登录邮箱 |
-| `code` | string | 是 | 6 位数字验证码 |
+| `phone` | string | 是 | 11 位手机号 |
+| `email` | string | 是 | 邮箱 |
+| `code` | string | 是 | 6 位邮箱验证码（`purpose=register` 发送） |
+| `password` | string | 是 | 8–32 位，须含字母与数字 |
+
+**响应 `data`（TokenData）**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `access_token` | string | JWT |
+| `token_type` | string | 默认 `"bearer"` |
+
+**message**：`注册成功`
+
+---
+
+### POST `/auth/login`
+
+登录（两种方式）。
+
+**请求体 · 手机号 + 密码（默认）**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `login_type` | string | 是 | 固定 `phone_password` |
+| `phone` | string | 是 | 11 位手机号 |
+| `password` | string | 是 | 登录密码 |
+
+**请求体 · 邮箱 + 验证码**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `login_type` | string | 是 | 固定 `email_code` |
+| `email` | string | 是 | 已注册邮箱 |
+| `code` | string | 是 | 6 位邮箱验证码（`purpose=login` 发送） |
 
 **响应 `data`（TokenData）**
 
@@ -130,6 +165,7 @@ Content-Type: application/json
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
+| `phone` | string | 脱敏手机号 |
 | `email` | string | 邮箱 |
 | `has_parent_pin` | bool | 是否已设置家长密码 |
 | `family_id` | int \| null | 家庭 ID |

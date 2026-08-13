@@ -1,13 +1,16 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class SendCodeRequest(BaseModel):
     email: EmailStr
+    purpose: str = Field(default="login", pattern="^(register|login)$")
 
 
-class LoginRequest(BaseModel):
+class RegisterRequest(BaseModel):
+    phone: str = Field(..., min_length=11, max_length=20)
     email: EmailStr
     code: str = Field(..., min_length=6, max_length=6)
+    password: str = Field(..., min_length=8, max_length=32)
 
     @field_validator("code")
     @classmethod
@@ -15,6 +18,33 @@ class LoginRequest(BaseModel):
         if not v.isdigit():
             raise ValueError("验证码必须为 6 位数字")
         return v
+
+
+class LoginRequest(BaseModel):
+    login_type: str = Field(default="phone_password", pattern="^(phone_password|email_code)$")
+    phone: str | None = None
+    password: str | None = None
+    email: EmailStr | None = None
+    code: str | None = None
+
+    @field_validator("code")
+    @classmethod
+    def validate_code(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if not v.isdigit() or len(v) != 6:
+            raise ValueError("验证码必须为 6 位数字")
+        return v
+
+    @model_validator(mode="after")
+    def validate_login_fields(self) -> "LoginRequest":
+        if self.login_type == "phone_password":
+            if not self.phone or not self.password:
+                raise ValueError("手机号和密码不能为空")
+        elif self.login_type == "email_code":
+            if not self.email or not self.code:
+                raise ValueError("邮箱和验证码不能为空")
+        return self
 
 
 class SendCodeData(BaseModel):
@@ -29,6 +59,7 @@ class TokenData(BaseModel):
 
 
 class UserInfo(BaseModel):
+    phone: str
     email: str
     has_parent_pin: bool = False
     family_id: int | None = None
@@ -287,6 +318,7 @@ class JoinFamilyRequest(BaseModel):
 
 
 class FamilyMemberItem(BaseModel):
+    phone: str
     email: str
     role: str
     is_self: bool = False
