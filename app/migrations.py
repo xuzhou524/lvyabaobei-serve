@@ -77,6 +77,8 @@ def run_migrations() -> None:
         _add_column_if_missing("users", "subscription_tier", "subscription_tier VARCHAR(16) DEFAULT 'free'")
         _add_column_if_missing("users", "pro_expires_at", "pro_expires_at BIGINT")
         _add_column_if_missing("users", "legacy_pro_trial_granted", "legacy_pro_trial_granted BOOLEAN DEFAULT 0")
+        _add_column_if_missing("users", "status", "status VARCHAR(16) DEFAULT 'active'")
+        _add_column_if_missing("users", "deleted_at", "deleted_at BIGINT")
         if not had_phone:
             _wipe_all_account_data()
         _revoke_auto_trial_pro()

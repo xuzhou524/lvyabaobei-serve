@@ -199,6 +199,22 @@ Content-Type: application/json
 
 ---
 
+### POST `/user/deactivate`
+
+注销当前账号（逻辑删除）。需登录。
+
+**请求体**：无（空 JSON `{}` 或不传 body 均可）
+
+**响应 `data`**：`{ "ok": true }`
+
+**说明**
+
+- 账号标记为已注销并记录 `deleted_at`（毫秒时间戳），之后无法登录。
+- 手机号、邮箱从唯一约束中释放，使用相同手机号或邮箱再次注册将创建**新用户 ID**。
+- 历史业务数据保留在服务端，不与新账号关联。
+
+---
+
 ## 5. 家庭与待办
 
 ### GET `/family`
@@ -687,37 +703,38 @@ Content-Type: application/json
 | 4 | GET | `/user/info` | — | 是 |
 | 5 | PUT | `/user/parent-pin` | body | 是 |
 | 6 | POST | `/user/verify-parent-pin` | body | 是 |
-| 7 | GET | `/family` | — | 是 |
-| 8 | GET | `/pending` | — | 是 |
-| 9 | GET | `/children` | — | 是 |
-| 10 | POST | `/children` | body | 是 |
-| 11 | PUT | `/children` | body | 是 |
-| 12 | DELETE | `/children` | query: child_id | 是 |
-| 13 | GET | `/children/home` | query: child_id | 是 |
-| 14 | GET | `/tasks` | query | 是 |
-| 15 | POST | `/tasks` | body | 是 |
-| 16 | PUT | `/tasks` | body | 是 |
-| 17 | DELETE | `/tasks` | query: task_id | 是 |
-| 18 | POST | `/tasks/reorder` | body | 是 |
-| 19 | POST | `/tasks/submit` | body | 是 |
-| 20 | POST | `/tasks/approve` | body | 是 |
-| 21 | POST | `/tasks/reject` | body | 是 |
-| 22 | GET | `/growth/plant` | query: child_id | 是 |
-| 23 | PUT | `/growth/plant/name` | body | 是 |
-| 24 | POST | `/growth/plant/reset` | body | 是 |
-| 25 | GET | `/growth/ledger` | query | 是 |
-| 26 | GET | `/growth/report` | query: child_id | 是 |
-| 27 | POST | `/games/complete` | body | 是 |
-| 28 | GET | `/points/ledger` | query | 是 |
-| 29 | GET | `/rewards` | query: child_id | 是 |
-| 30 | POST | `/rewards` | body | 是 |
-| 31 | PUT | `/rewards` | body | 是 |
-| 32 | DELETE | `/rewards` | query: reward_id | 是 |
-| 33 | POST | `/rewards/redeem` | body | 是 |
-| 34 | POST | `/redemptions/approve` | body | 是 |
-| 35 | POST | `/redemptions/reject` | body | 是 |
+| 7 | POST | `/user/deactivate` | — | 是 |
+| 8 | GET | `/family` | — | 是 |
+| 9 | GET | `/pending` | — | 是 |
+| 10 | GET | `/children` | — | 是 |
+| 11 | POST | `/children` | body | 是 |
+| 12 | PUT | `/children` | body | 是 |
+| 13 | DELETE | `/children` | query: child_id | 是 |
+| 14 | GET | `/children/home` | query: child_id | 是 |
+| 15 | GET | `/tasks` | query | 是 |
+| 16 | POST | `/tasks` | body | 是 |
+| 17 | PUT | `/tasks` | body | 是 |
+| 18 | DELETE | `/tasks` | query: task_id | 是 |
+| 19 | POST | `/tasks/reorder` | body | 是 |
+| 20 | POST | `/tasks/submit` | body | 是 |
+| 21 | POST | `/tasks/approve` | body | 是 |
+| 22 | POST | `/tasks/reject` | body | 是 |
+| 23 | GET | `/growth/plant` | query: child_id | 是 |
+| 24 | PUT | `/growth/plant/name` | body | 是 |
+| 25 | POST | `/growth/plant/reset` | body | 是 |
+| 26 | GET | `/growth/ledger` | query | 是 |
+| 27 | GET | `/growth/report` | query: child_id | 是 |
+| 28 | POST | `/games/complete` | body | 是 |
+| 29 | GET | `/points/ledger` | query | 是 |
+| 30 | GET | `/rewards` | query: child_id | 是 |
+| 31 | POST | `/rewards` | body | 是 |
+| 32 | PUT | `/rewards` | body | 是 |
+| 33 | DELETE | `/rewards` | query: reward_id | 是 |
+| 34 | POST | `/rewards/redeem` | body | 是 |
+| 35 | POST | `/redemptions/approve` | body | 是 |
+| 36 | POST | `/redemptions/reject` | body | 是 |
 
-**合计：35 个业务接口 + 1 个健康检查 = 36 个 HTTP 端点**
+**合计：36 个业务接口 + 1 个健康检查 = 37 个 HTTP 端点**
 
 ---
 

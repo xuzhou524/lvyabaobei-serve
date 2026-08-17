@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app.auth import get_user_by_id
+from app.auth import USER_STATUS_ACTIVE, get_user_by_id
 from app.config import settings
 from app.database import get_db
 from app.exceptions import BusinessException
@@ -30,7 +30,7 @@ def get_current_user(
         raise BusinessException(401, "登录已失效，请重新登录") from None
 
     user = get_user_by_id(db, user_id)
-    if not user:
-        raise BusinessException(401, "用户不存在")
+    if not user or user.status != USER_STATUS_ACTIVE:
+        raise BusinessException(401, "用户不存在或已注销")
 
     return user

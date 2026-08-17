@@ -8,13 +8,15 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    phone: Mapped[str] = mapped_column(String(11), unique=True, index=True, nullable=False)
+    phone: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     parent_pin_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     subscription_tier: Mapped[str] = mapped_column(String(16), default="free")
     pro_expires_at: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     legacy_pro_trial_granted: Mapped[bool] = mapped_column(Boolean, default=False)
+    status: Mapped[str] = mapped_column(String(16), default="active", index=True, nullable=False)
+    deleted_at: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     family_memberships: Mapped[list["FamilyMember"]] = relationship(back_populates="user")

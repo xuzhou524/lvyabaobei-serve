@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from app.auth import deactivate_user
 from app.database import get_db
 from app.deps import get_current_user
 from app.domain_schemas import SetParentPinRequest, UserInfo, VerifyParentPinRequest
@@ -40,3 +41,12 @@ def verify_parent_pin_api(
     if not verify_parent_pin(body.pin, current_user.parent_pin_hash):
         raise BusinessException(401, "家长密码错误")
     return success({"ok": True})
+
+
+@router.post("/deactivate", response_model=ApiResponse[dict])
+def deactivate_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    deactivate_user(db, current_user)
+    return success({"ok": True}, message="账号已注销")
